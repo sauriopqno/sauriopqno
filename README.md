@@ -23,7 +23,7 @@
 ## 👋 About Me
 
 🧑‍💻 I'm **IMANOL ELIZONDO PERUCICH**, Systems Engineering Student.<br/>
-💼 Based in **Mexico City, MX**, working at **JAAK It**.<br/>
+💼 Based in **Mexico City, MX**, open to work
 🌱 Currently learning: **Cybersecurity, focusing on penetration testing through Hack The Box (HTB) platform.**<br/>
 💬 Ask me about: **Algorithm optimization, competitive programming, system architecture.**<br/>
 
