@@ -1,5 +1,5 @@
 <p>
-  <img align="left" width="490" height="165" src="https://github-readme-stats.vercel.app/api?username=sauriopqno&show_icons=true&hide_border=false&line_height=20&title_color=f69673&icon_color=1b93c9&show_owner=true&theme=dark"/>
+  <img align="left" width="490" height="165" src="https://github-readme-stats.vercel.app/api?username=sauriopqno&show_icons=true&hide_border=false&line_height=20&title_color=f69673&icon_color=1b93c9&show_owner=true&theme=tokyonight"/>
   <p align="right">
     <img src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
     <img src="https://img.shields.io/badge/-C-333?style=flat-square&logo=c&logoColor=white"/>
@@ -17,6 +17,10 @@
 </p>
 
 <br clear="both"/>
+
+### 📊 Most Used Languages
+
+![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=sauriopqno&layout=compact&theme=tokyonight&hide_border=true&hide=html,css)
 
 ---
 
