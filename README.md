@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=00e676&height=120&section=header&text=ROOT@IMANOL:%7E%24&fontSize=50&fontColor=000000" alt="Banner" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=00e676&height=200&section=header&text=ROOT@IMANOL:%7E%24&fontSize=50&fontColor=000000" alt="Banner" />
 </p>
 
 ---
