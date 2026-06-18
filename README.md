@@ -1,3 +1,9 @@
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=00e676&height=120&section=header&text=ROOT@IMANOL:%7E%24&fontSize=50&fontColor=000000" alt="Banner" />
+</p>
+
+---
+
 <p>
   <img align="left" width="490" height="165" src="https://github-readme-stats.vercel.app/api?username=sauriopqno&show_icons=true&hide_border=false&line_height=20&title_color=f69673&icon_color=1b93c9&show_owner=true&theme=tokyonight"/>
   <p align="right">
