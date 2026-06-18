@@ -7,8 +7,11 @@
 <!---line break---->
 
 
-<p>
-  <img align="left" width="490" height="165" src="https://github-readme-stats.vercel.app/api?username=sauriopqno&show_icons=true&hide_border=false&line_height=20&title_color=f69673&icon_color=1b93c9&show_owner=true&theme=tokyonight"/>
+<p align="center">
+  <img height="160px" src="https://github-readme-stats.vercel.app/api?username=sauriopqno&show_icons=true&theme=github_dark&hide_border=true&title_color=4FC3F7&icon_color=007ACC&text_color=C9D1D9&bg_color=0D1117" />
+  &nbsp;
+</p>
+<br>
   <p align="right">
     <img src="https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=python&logoColor=white"/>
     <img src="https://img.shields.io/badge/-C-333?style=flat-square&logo=c&logoColor=white"/>
