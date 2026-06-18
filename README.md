@@ -2,7 +2,10 @@
   <img src="https://capsule-render.vercel.app/api?type=waving&color=00e676&height=200&section=header&text=ROOT@IMANOL:%7E%24&fontSize=50&fontColor=000000" alt="Banner" />
 </p>
 
----
+<!---line break---->
+<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"> 
+<!---line break---->
+
 
 <p>
   <img align="left" width="490" height="165" src="https://github-readme-stats.vercel.app/api?username=sauriopqno&show_icons=true&hide_border=false&line_height=20&title_color=f69673&icon_color=1b93c9&show_owner=true&theme=tokyonight"/>
@@ -28,15 +31,21 @@
 
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=sauriopqno&layout=compact&theme=tokyonight&hide_border=true&hide=html,css)
 
----
+<!---line break---->
+<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"> 
+<!---line break---->
+
 ### Hack The Box
 <p align="left">
   <a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6">
     <img src="https://www.hackthebox.eu/badge/image/019ca207-b376-73f7-8db1-fece98e53cd6" alt="Hack The Box Profile Badge" />
   </a>
 </p>
+<!---line break---->
+<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"> 
+<!---line break---->
 
----
+
 
 ## 👋 About Me
 
@@ -45,7 +54,10 @@
 🌱 Currently learning: **Cybersecurity, focusing on penetration testing through Hack The Box (HTB) platform.**<br/>
 💬 Ask me about: **Algorithm optimization, competitive programming, system architecture.**<br/>
 
----
+<!---line break---->
+<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"> 
+<!---line break---->
+
 
 ## 📫 Contact
 
@@ -59,7 +71,10 @@
 
 [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=sauriopqno&theme=github-dark-blue&hide_border=true&background=0d1117)](https://git.io/streak-stats)
 
----
+<!---line break---->
+<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"> 
+<!---line break---->
+
 
 <p align="center">
   <picture>
