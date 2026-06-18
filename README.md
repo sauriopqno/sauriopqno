@@ -44,3 +44,15 @@
 ---
 
 [![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=sauriopqno&theme=github-dark-blue&hide_border=true&background=0d1117)](https://git.io/streak-stats)
+
+---
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/sauriopqno/sauriopqno/output/github-contribution-grid-snake-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/sauriopqno/sauriopqno/output/github-contribution-grid-snake.svg">
+    <img alt="GitHub Contribution Snake Animation" src="https://raw.githubusercontent.com/sauriopqno/sauriopqno/output/github-contribution-grid-snake.svg">
+  </picture>
+</p>
+<hr color="navyblue">
+
