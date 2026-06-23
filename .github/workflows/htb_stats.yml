@@ -23,7 +23,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests
-
       - name: Fetch HTB Data and Update README
         run: |
           python - << 'EOF'
@@ -44,64 +43,66 @@ jobs:
           response = requests.get(url, headers=headers, timeout=15)
           html = response.text
           
+          # Valores dinámicos por defecto
           rango = "Beginner"
-          nivel = "13"
-          logros_count = "6"
+          nivel = "1"
+          logros_count = "0"
           grado_texto = "♦︎♦︎♦︎"
-          
-          if "__NUXT__" in html:
-              try:
-                  nuxt_match = re.search(r'__NUXT__\s*=\s*JSON\.parse\(\'(.*?)\'\)', html)
-                  if nuxt_match:
-                      clean_json = nuxt_match.group(1).encode().decode('unicode-escape')
-                      data = json.loads(clean_json)
-                      data_str = json.dumps(data)
-                      
-                      levels = re.findall(r'"level"\s*:\s*(\d+)', data_str)
-                      ranks = re.findall(r'"rank"\s*:\s*"(.*?)"', data_str)
-                      if levels: nivel = levels[0]
-                      if ranks: rango = ranks[0]
-                      
-                      badges_count_match = re.search(r'"badges_count"\s*:\s*(\d+)', data_str) or re.search(r'"badgesCount"\s*:\s*(\d+)', data_str)
-                      achievements_match = re.search(r'"achievements_count"\s*:\s*(\d+)', data_str) or re.search(r'"achievementsCount"\s*:\s*(\d+)', data_str)
-                      
-                      if badges_count_match:
-                          logros_count = badges_count_match.group(1)
-                      elif achievements_match:
-                          logros_count = achievements_match.group(1)
-                      else:
-                          badges_list = re.findall(r'"badge_id"\s*:\s*(\d+)', data_str) or re.findall(r'"badge"\s*:\s*\{', data_str)
-                          if badges_list and len(badges_list) > 0:
-                              logros_count = str(len(badges_list))
-                      
-                      grade_match = re.search(r'"grade"\s*:\s*(\d+)', data_str)
-                      if grade_match:
-                          num_grade = int(grade_match.group(1))
-                          grado_texto = "♦︎" * num_grade if num_grade > 0 else "♦︎♦︎♦︎"
-              except Exception as je:
-                  print(f"[-] Aviso parseando Nuxt: {je}")
 
-          # Leer el contenido del README de forma segura
+          # 1. Extracción de Rango Avanzada (Mapeo por palabras clave visibles en HTML)
+          for r in ["Noob", "Beginner", "Script Kiddie", "User", "Hacker", "Pro Hacker", "Elite Hacker", "Guru", "Omniscient"]:
+              if r in html:
+                  rango = r
+                  break
+
+          # 2. Extracción de Nivel usando Regex sobre texto o JSON inyectado
+          # Busca patrones como "level":13, "level": 13, u objetos planos en el JS de Nuxt
+          level_matches = re.findall(r'"level"\s*:\s*(\d+)', html) or re.findall(r'level.*?(\d+)', html)
+          if level_matches:
+              # Filtramos para evitar capturar ID's falsos y tomar el nivel real (normalmente menor a 200)
+              valid_levels = [l for l in level_matches if int(l) < 150]
+              if valid_levels:
+                  nivel = valid_levels[0]
+
+          # 3. Extracción de Logros (Contador de insignias/badges)
+          # Contamos las incidencias de objetos de medallas renderizados o la propiedad explícita
+          badge_matches = re.findall(r'"badge_id"\s*:', html) or re.findall(r'badge-card', html)
+          if badge_matches and len(badge_matches) > 0:
+              logros_count = str(len(badge_matches))
+          else:
+              # Fallback por propiedad de conteo
+              count_match = re.search(r'"badges_count"\s*:\s*(\d+)', html) or re.search(r'"achievements_count"\s*:\s*(\d+)', html)
+              if count_match:
+                  logros_count = count_match.group(1)
+
+          # 4. Extracción de Grado (Grade)
+          grade_match = re.search(r'"grade"\s*:\s*(\d+)', html)
+          if grade_match:
+              num_grade = int(grade_match.group(1))
+              grado_texto = "♦" * num_grade if num_grade > 0 else "♦︎♦︎♦"
+          else:
+              # Si no se encuentra numérico, intentamos contar diamantes gráficos o dejar el estándar de 3
+              grado_texto = "♦︎♦︎♦︎"
+
+          # --- PROCESO DE INYECCIÓN SEGURO EN EL README ---
           if os.path.exists("README.md"):
               with open("README.md", "r", encoding="utf-8") as f:
                   readme = f.read()
           else:
-              readme = "# My Profile\n\n<!-- HTB_STAT_START -->\n<!-- HTB_STAT_END -->\n\n<!-- HTB_STATS_TABLE_START -->\n<!-- HTB_STATS_TABLE_END -->"
+              readme = "# My Profile\n\n\n\n\n\n"
 
-          # Asegurar que existan los tags si el archivo es nuevo o no los tiene
-          if "<!-- HTB_STAT_START -->" not in readme:
-              readme = "<!-- HTB_STAT_START -->\n<!-- HTB_STAT_END -->\n\n" + readme
-          if "<!-- HTB_STATS_TABLE_START -->" not in readme:
-              readme = readme + "\n\n<!-- HTB_STATS_TABLE_START -->\n<!-- HTB_STATS_TABLE_END -->"
+          if "" not in readme:
+              readme = "\n\n\n" + readme
+          if "" not in readme:
+              readme = readme + "\n\n\n"
 
-          # Generar los nuevos bloques de texto
           texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
           badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
           profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
-          new_badge_html = f'<!-- HTB_STAT_START -->\n<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>\n<!-- HTB_STAT_END -->'
+          new_badge_html = f'\n<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>\n'
 
           nueva_tabla = (
-              "<!-- HTB_STATS_TABLE_START -->\n"
+              "\n"
               "### 📊 Hack The Box Detailed Progress\n"
               "| Métrica | Estado |\n"
               "| :--- | :--- |\n"
@@ -109,18 +110,19 @@ jobs:
               f"| ⚡ **Nivel de XP** | Lvl {nivel} |\n"
               f"| 🏆 **Logros Obtenidos** | {logros_count} |\n"
               f"| 💎 **Grado Actual** | {grado_texto} |\n"
-              "<!-- HTB_STATS_TABLE_END -->"
+              ""
           )
 
-          # Inyección limpia usando expresiones regulares para sustituir bloques enteros sin romper nada
-          readme = re.sub(r'<!-- HTB_STAT_START -->.*?<!-- HTB_STAT_END -->', new_badge_html, readme, flags=re.DOTALL)
-          readme = re.sub(r'<!-- HTB_STATS_TABLE_START -->.*?<!-- HTB_STATS_TABLE_END -->', nueva_tabla, readme, flags=re.DOTALL)
+          readme = re.sub(r'.*?', new_badge_html, readme, flags=re.DOTALL)
+          readme = re.sub(r'.*?', nueva_tabla, readme, flags=re.DOTALL)
 
           with open("README.md", "w", encoding="utf-8") as f:
               f.write(readme)
           
-          print(f"[+] Sincronización finalizada localmente -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
+          print(f"[+] Sincronización finalizada -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
           EOF
+
+      
           
           
 
