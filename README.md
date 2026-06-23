@@ -54,8 +54,8 @@
 | Metrics| state |
 | :--- | :--- |
 | 🏅 **global rank** | Beginner |
-| ⚡ **xp level** | Lvl 13 |
-| 🏆 **badges** | 6 |
+| ⚡ **xp level** | Lvl 1|
+| 🏆 **badges** | 0 |
 | 💎 **Grade** | ♦︎♦︎♦︎ |
 <!-- HTB_STATS_TABLE_END -->
 
