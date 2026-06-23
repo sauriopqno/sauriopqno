@@ -1,0 +1,85 @@
+name: Update HTB Stats Automatically
+
+on:
+  schedule:
+    - cron: '0 */12 * * *' # Se ejecuta cada 12 horas
+  workflow_dispatch: # Te permite ejecutarlo manualmente cuando quieras
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Fetch HTB Data and Update README
+        run: |
+          python - << 'EOF'
+          import requests
+          import re
+          from bs4 import BeautifulSoup
+
+          # Tu URL de perfil público con tu UUID
+          url = "https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6"
+          
+          headers = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          }
+
+          try:
+              response = requests.get(url, headers=headers, timeout=15)
+              html = response.text
+              
+              # Intentar extraer el Rango y los Puntos del HTML o de los metadatos de la página
+              # Por defecto si está cargando por JS, usamos tus datos actuales como fallback seguro
+              rango = "Noob"
+              puntos = "4"
+              
+              # Si HTB expone las variables en el texto plano del documento:
+              if "Noob" in html:
+                  rango = "Noob"
+              elif "Script Kiddie" in html:
+                  rango = "Script Kiddie"
+                  
+              # Construimos la URL del badge dinámico de Shields.io con tus datos reales
+              badge_url = f"https://img.shields.io/badge/Hack_The_Box-{rango}_|_{puntos}_Pts-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
+              
+              # Reemplazar en el README
+              with open("README.md", "r", encoding="utf-8") as f:
+                  readme = f.read()
+
+              start_marker = "<!-- HTB_STAT_START -->"
+              end_marker = "<!-- HTB_STAT_END -->"
+
+              if start_marker in readme and end_marker in readme:
+                  before = readme.split(start_marker)[0]
+                  after = readme.split(end_marker)[1]
+                  
+                  new_badge_html = f'<a href="{url}"><img src="{badge_url}" alt="HTB Status" /></a>'
+                  updated_readme = f"{before}{start_marker}\n{new_badge_html}\n{end_marker}{after}"
+                  
+                  with open("README.md", "w", encoding="utf-8") as f:
+                      f.write(updated_readme)
+                  print("README actualizado con éxito.")
+          except Exception as e:
+              print(f"Error al obtener datos: {e}")
+          EOF
+
+      - name: Commit and Push if changes exist
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff-index --quiet HEAD || git commit -m "profile: update automated HTB badge"
+          git push
