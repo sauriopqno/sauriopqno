@@ -23,6 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests
+
       - name: Fetch HTB Data and Update README
         run: |
           python - << 'EOF'
@@ -43,67 +44,60 @@ jobs:
           response = requests.get(url, headers=headers, timeout=15)
           html = response.text
           
-          # Valores dinámicos por defecto
+          # Valores por defecto dinámicos
           rango = "Beginner"
           nivel = "1"
           logros_count = "0"
           grado_texto = "♦︎♦︎♦︎"
 
-          # 1. Extracción de Rango Avanzada (Mapeo por palabras clave visibles en HTML)
+          # 1. Extraer Rango
           for r in ["Noob", "Beginner", "Script Kiddie", "User", "Hacker", "Pro Hacker", "Elite Hacker", "Guru", "Omniscient"]:
               if r in html:
                   rango = r
                   break
 
-          # 2. Extracción de Nivel usando Regex sobre texto o JSON inyectado
-          # Busca patrones como "level":13, "level": 13, u objetos planos en el JS de Nuxt
-          level_matches = re.findall(r'"level"\s*:\s*(\d+)', html) or re.findall(r'level.*?(\d+)', html)
+          # 2. Extraer Nivel de forma segura
+          level_matches = re.findall(r'"level"\s*:\s*(\d+)', html)
           if level_matches:
-              # Filtramos para evitar capturar ID's falsos y tomar el nivel real (normalmente menor a 200)
-              valid_levels = [l for l in level_matches if int(l) < 150]
-              if valid_levels:
-                  nivel = valid_levels[0]
+              nivel = level_matches[0]
 
-          # 3. Extracción de Logros (Contador de insignias/badges)
-          # Contamos las incidencias de objetos de medallas renderizados o la propiedad explícita
-          badge_matches = re.findall(r'"badge_id"\s*:', html) or re.findall(r'badge-card', html)
-          if badge_matches and len(badge_matches) > 0:
+          # 3. Extraer Logros
+          badge_matches = re.findall(r'"badge_id"\s*:', html)
+          if badge_matches:
               logros_count = str(len(badge_matches))
           else:
-              # Fallback por propiedad de conteo
-              count_match = re.search(r'"badges_count"\s*:\s*(\d+)', html) or re.search(r'"achievements_count"\s*:\s*(\d+)', html)
+              count_match = re.search(r'"badges_count"\s*:\s*(\d+)', html)
               if count_match:
                   logros_count = count_match.group(1)
 
-          # 4. Extracción de Grado (Grade)
+          # 4. Extraer Grado
           grade_match = re.search(r'"grade"\s*:\s*(\d+)', html)
           if grade_match:
-              num_grade = int(grade_match.group(1))
-              grado_texto = "♦" * num_grade if num_grade > 0 else "♦︎♦︎♦"
-          else:
-              # Si no se encuentra numérico, intentamos contar diamantes gráficos o dejar el estándar de 3
-              grado_texto = "♦︎♦︎♦︎"
+              grado_texto = "♦" * int(grade_match.group(1))
 
-          # --- PROCESO DE INYECCIÓN SEGURO EN EL README ---
-          if os.path.exists("README.md"):
-              with open("README.md", "r", encoding="utf-8") as f:
-                  readme = f.read()
-          else:
-              readme = "# My Profile\n\n\n\n\n\n"
+          # --- INYECCIÓN LINEAL SEGURA (PROHIBIDO DUPLICAR) ---
+          if not os.path.exists("README.md"):
+              with open("README.md", "w", encoding="utf-8") as f:
+                  f.write("\n\n\n")
 
+          with open("README.md", "r", encoding="utf-8") as f:
+              readme = f.read()
+
+          # Forzar creación de tags si no existen de forma limpia
           if "" not in readme:
-              readme = "\n\n\n" + readme
+              readme = "\n\n" + readme
           if "" not in readme:
-              readme = readme + "\n\n\n"
+              readme = readme + "\n\n"
 
+          # Formatear el nuevo Badge y la nueva Tabla
           texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
           badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
           profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
-          new_badge_html = f'\n<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>\n'
-
+          
+          new_badge = f'\n<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>\n'
+          
           nueva_tabla = (
               "\n"
-              "### 📊 Hack The Box Detailed Progress\n"
               "| Métrica | Estado |\n"
               "| :--- | :--- |\n"
               f"| 🏅 **Rango Global** | {rango} |\n"
@@ -113,23 +107,24 @@ jobs:
               ""
           )
 
-          readme = re.sub(r'.*?', new_badge_html, readme, flags=re.DOTALL)
-          readme = re.sub(r'.*?', nueva_tabla, readme, flags=re.DOTALL)
+          # Reemplazo estricto por rebanado de strings (Split exacto)
+          try:
+              parts_badge = readme.split("")
+              sub_parts = parts_badge[1].split("")
+              readme = parts_badge[0] + new_badge + sub_parts[1]
+
+              parts_table = readme.split("")
+              sub_table = parts_table[1].split("")
+              readme = parts_table[0] + nueva_tabla + sub_table[1]
+          except Exception as split_err:
+              print(f"[-] Reemplazo falló, regenerando estructura limpia: {split_err}")
+              readme = f"{new_badge}\n\n{nueva_tabla}"
 
           with open("README.md", "w", encoding="utf-8") as f:
               f.write(readme)
           
-          print(f"[+] Sincronización finalizada -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
+          print(f"[+] Sincronización finalizada correctamente.")
           EOF
-
-      
-          
-          
-
-      - name: Check Git Status
-        run: |
-          git status
-          git diff README.md
 
       - name: Commit changes safely
         run: |
@@ -138,10 +133,10 @@ jobs:
           git add README.md
           
           if [ -n "$(git status --porcelain)" ]; then
-            echo "[+] Cambios detectados en el perfil. Guardando..."
+            echo "[+] Cambios reales detectados. Haciendo push..."
             git commit -m "profile: dynamic auto-injection of HTB summary metrics"
             git push origin HEAD
           else
-            echo "[+] Las estadísticas de HTB siguen idénticas. No se requiere commit."
+            echo "[+] Archivo idéntico. Sin cambios."
           fi
           
