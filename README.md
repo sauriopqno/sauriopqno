@@ -40,8 +40,8 @@
 
 ### Hack The Box
 <p align="left">
-  <a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6">
-    <img src="https://www.hackthebox.eu/badge/image/019ca207-b376-73f7-8db1-fece98e53cd6" alt="Hack The Box Profile Badge" />
+  <a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6?v=2">
+    <img src="https://www.hackthebox.eu/badge/image/019ca207-b376-73f7-8db1-fece98e53cd6?v=2" alt="Hack The Box Profile Badge" />
   </a>
 </p>
 <!---line break---->
