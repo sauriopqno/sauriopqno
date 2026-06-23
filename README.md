@@ -51,11 +51,12 @@
 
 ### 📊 Hack The Box Detailed Progress
 <!-- HTB_STATS_TABLE_START -->
+### 📊 Hack The Box Detailed Progress
 | Métrica | Estado |
 | :--- | :--- |
 | 🏅 **Rango Global** | Beginner |
-| ⚡ **Nivel de XP** | Lvl 11 |
-| 🏆 **Logros Obtenidos** | 5 |
+| ⚡ **Nivel de XP** | Lvl 13 |
+| 🏆 **Logros Obtenidos** | 6 |
 | 💎 **Grado Actual** | ♦︎♦︎♦︎ |
 <!-- HTB_STATS_TABLE_END -->
 
