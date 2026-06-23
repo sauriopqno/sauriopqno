@@ -12,9 +12,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          ref: main # <-- REEMPLAZA AQUÍ con el nombre exacto de tu rama alternativa
+        uses: actions/checkout@v4 # Al quitar el "with: ref:", toma 'main' por defecto
 
       - name: Set up Python
         uses: actions/setup-python@v5
