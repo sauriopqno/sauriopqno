@@ -2,8 +2,8 @@ name: Update HTB Stats Automatically
 
 on:
   schedule:
-    - cron: '0 */12 * * *' # Se ejecuta cada 12 horas automáticamente
-  workflow_dispatch: # Permite ejecución manual
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
 
 jobs:
   update-stats:
@@ -25,6 +25,7 @@ jobs:
           import requests
           import re
           import json
+          import os
 
           uuid = "019ca207-b376-73f7-8db1-fece98e53cd6"
           url = f"https://profile.hackthebox.com/profile/{uuid}"
@@ -34,89 +35,95 @@ jobs:
               "Accept": "text/html"
           }
 
-          try:
-              response = requests.get(url, headers=headers, timeout=15)
-              html = response.text
-              
-              # Valores base por defecto (fallbacks)
-              rango = "Beginner"
-              nivel = "13"
-              logros_count = "6"
-              grado_texto = "♦︎♦︎♦︎"
-              
-              if "__NUXT__" in html:
-                  try:
-                      nuxt_match = re.search(r'__NUXT__\s*=\s*JSON\.parse\(\'(.*?)\'\)', html)
-                      if nuxt_match:
-                          clean_json = nuxt_match.group(1).encode().decode('unicode-escape')
-                          data = json.loads(clean_json)
-                          data_str = json.dumps(data)
-                          
-                          # 1. Buscar Rango y Nivel
-                          levels = re.findall(r'"level"\s*:\s*(\d+)', data_str)
-                          ranks = re.findall(r'"rank"\s*:\s*"(.*?)"', data_str)
-                          if levels: nivel = levels[0]
-                          if ranks: rango = ranks[0]
-                          
-                          # 2. Buscar Contador de Logros Profundo
-                          badges_count_match = re.search(r'"badges_count"\s*:\s*(\d+)', data_str) or re.search(r'"badgesCount"\s*:\s*(\d+)', data_str)
-                          achievements_match = re.search(r'"achievements_count"\s*:\s*(\d+)', data_str) or re.search(r'"achievementsCount"\s*:\s*(\d+)', data_str)
-                          
-                          if badges_count_match:
-                              logros_count = badges_count_match.group(1)
-                          elif achievements_match:
-                              logros_count = achievements_match.group(1)
-                          else:
-                              badges_list = re.findall(r'"badge_id"\s*:\s*(\d+)', data_str) or re.findall(r'"badge"\s*:\s*\{', data_str)
-                              if badges_list and len(badges_list) > 0:
-                                  logros_count = str(len(badges_list))
-                          
-                          # 3. Obtener el Grado (Grade)
-                          grade_match = re.search(r'"grade"\s*:\s*(\d+)', data_str)
-                          if grade_match:
-                              num_grade = int(grade_match.group(1))
-                              grado_texto = "♦︎" * num_grade if num_grade > 0 else "♦︎♦︎♦︎"
-                  except Exception as je:
-                      print(f"Aviso parseando Nuxt: {je}")
+          # 1. Obtener datos de HTB
+          print("[+] Conectando con Hack The Box...")
+          response = requests.get(url, headers=headers, timeout=15)
+          html = response.text
+          
+          rango = "Beginner"
+          nivel = "13"
+          logros_count = "6"
+          grado_texto = "♦︎♦︎♦︎"
+          
+          if "__NUXT__" in html:
+              try:
+                  nuxt_match = re.search(r'__NUXT__\s*=\s*JSON\.parse\(\'(.*?)\'\)', html)
+                  if nuxt_match:
+                      clean_json = nuxt_match.group(1).encode().decode('unicode-escape')
+                      data = json.loads(clean_json)
+                      data_str = json.dumps(data)
+                      
+                      levels = re.findall(r'"level"\s*:\s*(\d+)', data_str)
+                      ranks = re.findall(r'"rank"\s*:\s*"(.*?)"', data_str)
+                      if levels: nivel = levels[0]
+                      if ranks: rango = ranks[0]
+                      
+                      badges_count_match = re.search(r'"badges_count"\s*:\s*(\d+)', data_str) or re.search(r'"badgesCount"\s*:\s*(\d+)', data_str)
+                      achievements_match = re.search(r'"achievements_count"\s*:\s*(\d+)', data_str) or re.search(r'"achievementsCount"\s*:\s*(\d+)', data_str)
+                      
+                      if badges_count_match:
+                          logros_count = badges_count_match.group(1)
+                      elif achievements_match:
+                          logros_count = achievements_match.group(1)
+                      else:
+                          badges_list = re.findall(r'"badge_id"\s*:\s*(\d+)', data_str) or re.findall(r'"badge"\s*:\s*\{', data_str)
+                          if badges_list and len(badges_list) > 0:
+                              logros_count = str(len(badges_list))
+                      
+                      grade_match = re.search(r'"grade"\s*:\s*(\d+)', data_str)
+                      if grade_match:
+                          num_grade = int(grade_match.group(1))
+                          grado_texto = "♦︎" * num_grade if num_grade > 0 else "♦︎♦︎♦︎"
+              except Exception as je:
+                  print(f"[-] Aviso parseando Nuxt: {je}")
 
-              # --- ACTUALIZACIÓN DEL BADGE PRINCIPAL ---
-              texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
-              badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
-              
+          # 2. Leer o Inicializar el README.md
+          if os.path.exists("README.md"):
               with open("README.md", "r", encoding="utf-8") as f:
                   readme = f.read()
+          else:
+              readme = "# My Profile\n"
 
-              if "<!-- HTB_STAT_START -->" in readme and "<!-- HTB_STAT_END -->" in readme:
-                  before = readme.split("<!-- HTB_STAT_START -->")[0]
-                  after = readme.split("<!-- HTB_STAT_END -->")[1]
-                  profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
-                  new_badge_html = f'<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>'
-                  readme = f"{before}<!-- HTB_STAT_START -->\n{new_badge_html}\n<!-- HTB_STAT_END -->{after}"
+          # 3. Inyectar o actualizar el Badge
+          texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
+          badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
+          profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
+          new_badge_html = f'<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>'
 
-              # --- ACTUALIZACIÓN DE LA TABLA DETALLADA ---
-              if "<!-- HTB_STATS_TABLE_START -->" in readme and "<!-- HTB_STATS_TABLE_END -->" in readme:
-                  before_table = readme.split("<!-- HTB_STATS_TABLE_START -->")[0]
-                  after_table = readme.split("<!-- HTB_STATS_TABLE_END -->")[1]
-                  
-                  nueva_tabla = (
-                      "<!-- HTB_STATS_TABLE_START -->\n"
-                      "| Métrica | Estado |\n"
-                      "| :--- | :--- |\n"
-                      f"| 🏅 **Rango Global** | {rango} |\n"
-                      f"| ⚡ **Nivel de XP** | Lvl {nivel} |\n"
-                      f"| 🏆 **Logros Obtenidos** | {logros_count} |\n"
-                      f"| 💎 **Grado Actual** | {grado_texto} |\n"
-                      "<!-- HTB_STATS_TABLE_END -->"
-                  )
-                  readme = f"{before_table}{nueva_tabla}{after_table}"
+          if "" in readme and "" in readme:
+              before = readme.split("")[0]
+              after = readme.split("")[1]
+              readme = f"{before}\n{new_badge_html}\n{after}"
+          else:
+              # Si no existen los marcadores del badge, los añade arriba
+              readme = f"\n{new_badge_html}\n\n\n" + readme
 
-              with open("README.md", "w", encoding="utf-8") as f:
-                  f.write(readme)
-              print(f"[+] Actualización exitosa. Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
-              
-          except Exception as e:
-              print(f"Error crítico: {e}")
-              exit(1)
+          # 4. Inyectar o actualizar la Tabla
+          nueva_tabla = (
+              "\n"
+              "### 📊 Hack The Box Detailed Progress\n"
+              "| Métrica | Estado |\n"
+              "| :--- | :--- |\n"
+              f"| 🏅 **Rango Global** | {rango} |\n"
+              f"| ⚡ **Nivel de XP** | Lvl {nivel} |\n"
+              f"| 🏆 **Logros Obtenidos** | {logros_count} |\n"
+              f"| 💎 **Grado Actual** | {grado_texto} |\n"
+              ""
+          )
+
+          if "" in readme and "" in readme:
+              before_table = readme.split("")[0]
+              after_table = readme.split("")[1]
+              readme = f"{before_table}{nueva_tabla}{after_table}"
+          else:
+              # Si no existen los marcadores de la tabla, los añade al final de forma segura
+              readme = readme.strip() + f"\n\n{nueva_tabla}\n"
+
+          # 5. Guardar los cambios finales
+          with open("README.md", "w", encoding="utf-8") as f:
+              f.write(readme)
+          
+          print(f"[+] Sincronización exitosa -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
           EOF
 
       - name: Commit and Push if changes exist
@@ -124,6 +131,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git diff-index --quiet HEAD || git commit -m "profile: automated sync of HTB metrics & table summary"
+          git diff-index --quiet HEAD || git commit -m "profile: dynamic auto-injection of HTB summary metrics"
           git push origin HEAD
           
