@@ -81,26 +81,27 @@ jobs:
               except Exception as je:
                   print(f"[-] Aviso parseando Nuxt: {je}")
 
+          # Leer el contenido del README de forma segura
           if os.path.exists("README.md"):
               with open("README.md", "r", encoding="utf-8") as f:
                   readme = f.read()
           else:
-              readme = "# My Profile\n"
+              readme = "# My Profile\n\n<!-- HTB_STAT_START -->\n<!-- HTB_STAT_END -->\n\n<!-- HTB_STATS_TABLE_START -->\n<!-- HTB_STATS_TABLE_END -->"
 
+          # Asegurar que existan los tags si el archivo es nuevo o no los tiene
+          if "<!-- HTB_STAT_START -->" not in readme:
+              readme = "<!-- HTB_STAT_START -->\n<!-- HTB_STAT_END -->\n\n" + readme
+          if "<!-- HTB_STATS_TABLE_START -->" not in readme:
+              readme = readme + "\n\n<!-- HTB_STATS_TABLE_START -->\n<!-- HTB_STATS_TABLE_END -->"
+
+          # Generar los nuevos bloques de texto
           texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
           badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
           profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
-          new_badge_html = f'<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>'
-
-          if "" in readme and "" in readme:
-              before = readme.split("")[0]
-              after = readme.split("")[1]
-              readme = f"{before}\n{new_badge_html}\n{after}"
-          else:
-              readme = f"\n{new_badge_html}\n\n\n" + readme
+          new_badge_html = f'<!-- HTB_STAT_START -->\n<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>\n<!-- HTB_STAT_END -->'
 
           nueva_tabla = (
-              "\n"
+              "<!-- HTB_STATS_TABLE_START -->\n"
               "### 📊 Hack The Box Detailed Progress\n"
               "| Métrica | Estado |\n"
               "| :--- | :--- |\n"
@@ -108,21 +109,20 @@ jobs:
               f"| ⚡ **Nivel de XP** | Lvl {nivel} |\n"
               f"| 🏆 **Logros Obtenidos** | {logros_count} |\n"
               f"| 💎 **Grado Actual** | {grado_texto} |\n"
-              ""
+              "<!-- HTB_STATS_TABLE_END -->"
           )
 
-          if "" in readme and "" in readme:
-              before_table = readme.split("")[0]
-              after_table = readme.split("")[1]
-              readme = f"{before_table}{nueva_tabla}{after_table}"
-          else:
-              readme = readme.strip() + f"\n\n{nueva_tabla}\n"
+          # Inyección limpia usando expresiones regulares para sustituir bloques enteros sin romper nada
+          readme = re.sub(r'<!-- HTB_STAT_START -->.*?<!-- HTB_STAT_END -->', new_badge_html, readme, flags=re.DOTALL)
+          readme = re.sub(r'<!-- HTB_STATS_TABLE_START -->.*?<!-- HTB_STATS_TABLE_END -->', nueva_tabla, readme, flags=re.DOTALL)
 
           with open("README.md", "w", encoding="utf-8") as f:
               f.write(readme)
           
           print(f"[+] Sincronización finalizada localmente -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
           EOF
+          
+          
 
       - name: Check Git Status
         run: |
