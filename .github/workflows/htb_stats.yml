@@ -2,14 +2,14 @@ name: Update HTB Stats Automatically
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
-  workflow_dispatch:
+    - cron: '0 */12 * * *' # Se ejecuta automáticamente cada 12 horas
+  workflow_dispatch: # Te permite ejecutarlo manualmente cuando quieras desde la pestaña Actions
 
 jobs:
   update-stats:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Permiso explícito de escritura a nivel de job
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -35,11 +35,11 @@ jobs:
               "Accept": "text/html"
           }
 
-          # 1. Obtener datos de HTB
           print("[+] Conectando con Hack The Box...")
           response = requests.get(url, headers=headers, timeout=15)
           html = response.text
           
+          # Valores base (fallbacks por si falla el parseo dinámico)
           rango = "Beginner"
           nivel = "13"
           logros_count = "6"
@@ -53,11 +53,13 @@ jobs:
                       data = json.loads(clean_json)
                       data_str = json.dumps(data)
                       
+                      # 1. Extraer Rango y Nivel
                       levels = re.findall(r'"level"\s*:\s*(\d+)', data_str)
                       ranks = re.findall(r'"rank"\s*:\s*"(.*?)"', data_str)
                       if levels: nivel = levels[0]
                       if ranks: rango = ranks[0]
                       
+                      # 2. Extraer Contador de Logros Completo
                       badges_count_match = re.search(r'"badges_count"\s*:\s*(\d+)', data_str) or re.search(r'"badgesCount"\s*:\s*(\d+)', data_str)
                       achievements_match = re.search(r'"achievements_count"\s*:\s*(\d+)', data_str) or re.search(r'"achievementsCount"\s*:\s*(\d+)', data_str)
                       
@@ -70,6 +72,7 @@ jobs:
                           if badges_list and len(badges_list) > 0:
                               logros_count = str(len(badges_list))
                       
+                      # 3. Extraer Grado (Grade)
                       grade_match = re.search(r'"grade"\s*:\s*(\d+)', data_str)
                       if grade_match:
                           num_grade = int(grade_match.group(1))
@@ -77,28 +80,28 @@ jobs:
               except Exception as je:
                   print(f"[-] Aviso parseando Nuxt: {je}")
 
-          # 2. Leer o Inicializar el README.md
+          # Leer o inicializar el archivo README.md
           if os.path.exists("README.md"):
               with open("README.md", "r", encoding="utf-8") as f:
                   readme = f.read()
           else:
               readme = "# My Profile\n"
 
-          # 3. Inyectar o actualizar el Badge
+          # Generar URL del Badge dinámico
           texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
           badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
           profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
           new_badge_html = f'<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>'
 
+          # Inyectar o actualizar el Badge en su sección
           if "" in readme and "" in readme:
               before = readme.split("")[0]
               after = readme.split("")[1]
               readme = f"{before}\n{new_badge_html}\n{after}"
           else:
-              # Si no existen los marcadores del badge, los añade arriba
               readme = f"\n{new_badge_html}\n\n\n" + readme
 
-          # 4. Inyectar o actualizar la Tabla
+          # Estructurar la Tabla de estadísticas en Markdown
           nueva_tabla = (
               "\n"
               "### 📊 Hack The Box Detailed Progress\n"
@@ -111,26 +114,33 @@ jobs:
               ""
           )
 
+          # Inyectar o actualizar la Tabla en su sección
           if "" in readme and "" in readme:
               before_table = readme.split("")[0]
               after_table = readme.split("")[1]
               readme = f"{before_table}{nueva_tabla}{after_table}"
           else:
-              # Si no existen los marcadores de la tabla, los añade al final de forma segura
               readme = readme.strip() + f"\n\n{nueva_tabla}\n"
 
-          # 5. Guardar los cambios finales
+          # Escribir de vuelta los datos al README.md
           with open("README.md", "w", encoding="utf-8") as f:
               f.write(readme)
           
-          print(f"[+] Sincronización exitosa -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
+          print(f"[+] Sincronización finalizada localmente -> Rango: {rango} | Lvl: {nivel} | Logros: {logros_count}")
           EOF
 
-      - name: Commit and Push if changes exist
+      - name: Commit changes safely
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git diff-index --quiet HEAD || git commit -m "profile: dynamic auto-injection of HTB summary metrics"
-          git push origin HEAD
+          
+          # Condicional nativa para evitar fallos si no hay datos nuevos que subir
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "[+] Cambios detectados en el perfil. Guardando..."
+            git commit -m "profile: dynamic auto-injection of HTB summary metrics"
+            git push origin HEAD
+          else
+            echo "[+] Las estadísticas de HTB siguen idénticas. No se requiere commit."
+          fi
           
