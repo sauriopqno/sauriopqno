@@ -1,13 +1,40 @@
+name: Update HTB Stats Automatically
+
+on:
+  schedule:
+    - cron: '0 */12 * * *' # Se ejecuta automáticamente cada 12 horas
+  workflow_dispatch: # Te permite ejecutarlo manualmente desde la pestaña Actions
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main # <-- REEMPLAZA AQUÍ con el nombre exacto de tu rama alternativa
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests
+
       - name: Fetch HTB Data and Update README
         run: |
           python - << 'EOF'
           import requests
           import json
 
-          # Tu UUID exacto
+          # Tu UUID exacto de perfil
           uuid = "019ca207-b376-73f7-8db1-fece98e53cd6"
           
-          # Endpoint público de la nueva plataforma de perfiles
+          # Endpoint público de la API de perfiles de HTB
           url = f"https://profile.hackthebox.com/api/v1/profile/public/{uuid}"
           
           headers = {
@@ -19,17 +46,16 @@
               response = requests.get(url, headers=headers, timeout=15)
               data = response.json()
               
-              # Extraemos los datos reales del JSON de la API
-              # 'rank' nos da tu nivel/rango (ej. Noob, Script Kiddie, etc.)
+              # Extraemos el rango/nivel real desde el JSON de la API
               rango = data.get("profile", {}).get("rank", "Noob")
               
               # Reemplazamos espacios por guiones bajos para que la URL de Shields.io no se rompa
               rango_badge = rango.replace(" ", "_")
               
-              # Construimos la URL del badge dinámico mostrando solo tu Nivel/Rango
+              # Construimos la URL del badge dinámico de Shields.io apuntando a tu nivel
               badge_url = f"https://img.shields.io/badge/Hack_The_Box-{rango_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
               
-              # Leer y actualizar el README
+              # Leer el archivo README.md actual
               with open("README.md", "r", encoding="utf-8") as f:
                   readme = f.read()
 
@@ -40,17 +66,26 @@
                   before = readme.split(start_marker)[0]
                   after = readme.split(end_marker)[1]
                   
-                  # El enlace te mandará a tu perfil y el badge mostrará tu nivel real actualizado
+                  # Enlace directo a tu perfil con el badge dinámico intermedio
                   profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
                   new_badge_html = f'<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>'
                   updated_readme = f"{before}{start_marker}\n{new_badge_html}\n{end_marker}{after}"
                   
+                  # Escribir los cambios de vuelta al README.md
                   with open("README.md", "w", encoding="utf-8") as f:
                       f.write(updated_readme)
                   print(f"README actualizado con éxito. Rango detectado: {rango}")
               else:
-                  print("No se encontraron los marcadores en el README.")
+                  print("Error: No se encontraron los marcadores <!-- HTB_STAT_START --> y <!-- HTB_STAT_END --> en tu README.md")
           except Exception as e:
               print(f"Error al obtener datos reales de la API: {e}")
           EOF
+
+      - name: Commit and Push if changes exist
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff-index --quiet HEAD || git commit -m "profile: update automated HTB badge"
+          git push origin HEAD
           
