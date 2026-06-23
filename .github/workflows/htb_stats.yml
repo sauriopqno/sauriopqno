@@ -2,8 +2,8 @@ name: Update HTB Stats Automatically
 
 on:
   schedule:
-    - cron: '0 */12 * * *' # Se ejecuta automáticamente cada 12 horas
-  workflow_dispatch: # Te permite ejecutarlo manualmente desde la pestaña Actions
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
 
 jobs:
   update-stats:
@@ -19,67 +19,104 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
-        run: |
-          pip install requests
-
       - name: Fetch HTB Data and Update README
         run: |
           python - << 'EOF'
           import requests
+          import re
           import json
 
-          # Tu UUID exacto de perfil
           uuid = "019ca207-b376-73f7-8db1-fece98e53cd6"
-          
-          # Endpoint público de la API de perfiles de HTB
-          url = f"https://profile.hackthebox.com/api/v1/profile/public/{uuid}"
+          url = f"https://profile.hackthebox.com/profile/{uuid}"
           
           headers = {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-              "Accept": "application/json"
+              "Accept": "text/html"
           }
 
           try:
               response = requests.get(url, headers=headers, timeout=15)
-              data = response.json()
+              html = response.text
               
-              # Extraemos el rango y el nivel numérico de XP reales
-              profile = data.get("profile", {})
-              rango = profile.get("rank", "Noob")
-              nivel = profile.get("level", "13") # Fallback a 13 por si acaso
+              # Fallbacks base por defecto
+              rango = "Beginner"
+              nivel = "13"
+              logros_count = "0"
+              grado_texto = "♦︎♦︎♦︎"
               
-              # Formateamos el texto del badge (ej: Noob_|_Lvl_13)
-              texto_badge = f"{rango}_|_Lvl_{nivel}"
-              texto_badge = texto_badge.replace(" ", "_")
-              
-              # Construimos la URL del badge dinámico de Shields.io
+              # Intentar extraer y parsear el JSON interno de Nuxt 3
+              if "__NUXT__" in html:
+                  try:
+                      nuxt_match = re.search(r'__NUXT__\s*=\s*JSON\.parse\(\'(.*?)\'\)', html)
+                      if nuxt_match:
+                          clean_json = nuxt_match.group(1).encode().decode('unicode-escape')
+                          data = json.loads(clean_json)
+                          data_str = json.dumps(data)
+                          
+                          # 1. Extraer Nivel y Rango
+                          levels = re.findall(r'"level"\s*:\s*(\d+)', data_str)
+                          ranks = re.findall(r'"rank"\s*:\s*"(.*?)"', data_str)
+                          if levels: nivel = levels[0]
+                          if ranks: rango = ranks[0]
+                          
+                          # 2. Extraer Contador de Logros/Insignias (badges obtenidos)
+                          # Buscamos estructuras del array de logros en el JSON desglosado
+                          badges_found = re.findall(r'"badge_id"\s*:', data_str)
+                          if badges_found:
+                              logros_count = str(len(badges_found))
+                          else:
+                              # Alternativa por si viene como propiedad directa
+                              ach_match = re.search(r'"achievements_count"\s*:\s*(\d+)', data_str)
+                              if ach_match: logros_count = ach_match.group(1)
+
+                          # 3. Extraer el Grado (Grade)
+                          # Generalmente viene mapeado como un entero (1, 2, 3) o una propiedad "grade"
+                          grade_match = re.search(r'"grade"\s*:\s*(\d+)', data_str)
+                          if grade_match:
+                              num_grade = int(grade_match.group(1))
+                              grado_texto = "♦︎" * num_grade if num_grade > 0 else "♦︎♦︎♦︎"
+                  except Exception as je:
+                      print(f"Aviso: Parseo de Nuxt falló, usando regex plano. Info: {je}")
+
+              # --- PASO 1: ACTUALIZAR EL BADGE PRINCIPAL ---
+              texto_badge = f"{rango}_|_Lvl_{nivel}".replace(" ", "_")
               badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
               
-              # Leer el archivo README.md actual
               with open("README.md", "r", encoding="utf-8") as f:
                   readme = f.read()
 
-              start_marker = "<!-- HTB_STAT_START -->"
-              end_marker = "<!-- HTB_STAT_END -->"
-
-              if start_marker in readme and end_marker in readme:
-                  before = readme.split(start_marker)[0]
-                  after = readme.split(end_marker)[1]
-                  
-                  # Enlace directo a tu perfil con el badge dinámico intermedio
+              if "" in readme and "" in readme:
+                  before = readme.split("")[0]
+                  after = readme.split("")[1]
                   profile_url = f"https://profile.hackthebox.com/profile/{uuid}"
                   new_badge_html = f'<a href="{profile_url}"><img src="{badge_url}" alt="HTB Status" /></a>'
-                  updated_readme = f"{before}{start_marker}\n{new_badge_html}\n{end_marker}{after}"
+                  readme = f"{before}\n{new_badge_html}\n{after}"
+
+              # --- PASO 2: ACTUALIZAR LA TABLA DE ESTADÍSTICAS DETALLADAS ---
+              if "" in readme and "" in readme:
+                  before_table = readme.split("")[0]
+                  after_table = readme.split("")[1]
                   
-                  # Escribir los cambios de vuelta al README.md
-                  with open("README.md", "w", encoding="utf-8") as f:
-                      f.write(updated_readme)
-                  print(f"README actualizado con éxito. Rango: {rango} | Nivel: {nivel}")
-              else:
-                  print("Error: No se encontraron los marcadores <!-- HTB_STAT_START --> y <!-- HTB_STAT_END -->")
+                  # Construimos la nueva tabla formateada en Markdown
+                  nueva_tabla = (
+                      "\n"
+                      "| Métrica | Estado |\n"
+                      "| :--- | :--- |\n"
+                      f"| 🏅 **Rango Global** | {rango} |\n"
+                      f"| ⚡ **Nivel de XP** | Lvl {nivel} |\n"
+                      f"| 🏆 **Logros Obtenidos** | {logros_count} |\n"
+                      f"| 💎 **Grado Actual** | {grado_texto} |\n"
+                      ""
+                  )
+                  readme = f"{before_table}{nueva_tabla}{after_table}"
+
+              # Guardar todos los cambios finales
+              with open("README.md", "w", encoding="utf-8") as f:
+                  f.write(readme)
+              print(f"README completamente actualizado de forma híbrida.")
+              
           except Exception as e:
-              print(f"Error al obtener datos reales de la API: {e}")
+              print(f"Error crítico en la ejecución del script: {e}")
           EOF
 
       - name: Commit and Push if changes exist
@@ -87,6 +124,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git diff-index --quiet HEAD || git commit -m "profile: update automated HTB level badge"
+          git diff-index --quiet HEAD || git commit -m "profile: update dynamic HTB metrics & table summary"
           git push origin HEAD
           
