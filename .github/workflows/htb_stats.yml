@@ -12,7 +12,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4 # Al quitar el "with: ref:", toma 'main' por defecto
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,14 +44,17 @@ jobs:
               response = requests.get(url, headers=headers, timeout=15)
               data = response.json()
               
-              # Extraemos el rango/nivel real desde el JSON de la API
-              rango = data.get("profile", {}).get("rank", "Noob")
+              # Extraemos el rango y el nivel numérico de XP reales
+              profile = data.get("profile", {})
+              rango = profile.get("rank", "Noob")
+              nivel = profile.get("level", "13") # Fallback a 13 por si acaso
               
-              # Reemplazamos espacios por guiones bajos para que la URL de Shields.io no se rompa
-              rango_badge = rango.replace(" ", "_")
+              # Formateamos el texto del badge (ej: Noob_|_Lvl_13)
+              texto_badge = f"{rango}_|_Lvl_{nivel}"
+              texto_badge = texto_badge.replace(" ", "_")
               
-              # Construimos la URL del badge dinámico de Shields.io apuntando a tu nivel
-              badge_url = f"https://img.shields.io/badge/Hack_The_Box-{rango_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
+              # Construimos la URL del badge dinámico de Shields.io
+              badge_url = f"https://img.shields.io/badge/Hack_The_Box-{texto_badge}-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white"
               
               # Leer el archivo README.md actual
               with open("README.md", "r", encoding="utf-8") as f:
@@ -72,9 +75,9 @@ jobs:
                   # Escribir los cambios de vuelta al README.md
                   with open("README.md", "w", encoding="utf-8") as f:
                       f.write(updated_readme)
-                  print(f"README actualizado con éxito. Rango detectado: {rango}")
+                  print(f"README actualizado con éxito. Rango: {rango} | Nivel: {nivel}")
               else:
-                  print("Error: No se encontraron los marcadores <!-- HTB_STAT_START --> y <!-- HTB_STAT_END --> en tu README.md")
+                  print("Error: No se encontraron los marcadores <!-- HTB_STAT_START --> y <!-- HTB_STAT_END -->")
           except Exception as e:
               print(f"Error al obtener datos reales de la API: {e}")
           EOF
@@ -84,6 +87,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git diff-index --quiet HEAD || git commit -m "profile: update automated HTB badge"
+          git diff-index --quiet HEAD || git commit -m "profile: update automated HTB level badge"
           git push origin HEAD
           
