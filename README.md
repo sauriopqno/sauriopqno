@@ -41,7 +41,7 @@
 ### Hack The Box
 <p align="left">
 <!-- HTB_STAT_START -->
-<a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6"><img src="https://img.shields.io/badge/Hack_The_Box-Noob_|_4_Pts-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white" alt="HTB Status" /></a>
+<a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6"><img src="https://img.shields.io/badge/Hack_The_Box-Noob_|_26_Pts-9fe2bf?style=for-the-badge&logo=hackthebox&logoColor=white" alt="HTB Status" /></a>
 <!-- HTB_STAT_END -->
 </p>
 
