@@ -44,7 +44,7 @@ jobs:
               # Intentar extraer el Rango y los Puntos del HTML o de los metadatos de la página
               # Por defecto si está cargando por JS, usamos tus datos actuales como fallback seguro
               rango = "Noob"
-              puntos = "4"
+              puntos = "26"
               
               # Si HTB expone las variables en el texto plano del documento:
               if "Noob" in html:
