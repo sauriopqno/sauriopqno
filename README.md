@@ -39,16 +39,16 @@
 <!---line break---->
 
 ### Hack The Box
+<p align="left">
+  <a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6">
+    <img src="https://img.shields.io/badge/HackTheBox-Profile-111927?style=for-the-badge&logo=Hack+The+Box&logoColor=9FEF00" alt="Hack The Box" />
+  </a>
+</p>
 
 <a href="https://academy.hackthebox.com/achievement/badge/7ae2461b-7447-11f1-82d1-bea50ffe6cb4"><img src="https://academy.hackthebox.com/storage/badges/you-need-to-trace-before-you-can-hung.png" alt="Footprinting" width="90" height="90" /></a> <a href="https://academy.hackthebox.com/achievement/badge/c579f8f3-621e-11f1-82d1-bea50ffe6cb4"><img src="https://academy.hackthebox.com/storage/badges/the-eye-that-sees-all.png" alt="Nmap" width="90" height="90" /></a> <a href="https://academy.hackthebox.com/achievement/badge/ce2c71e2-0074-11f1-9254-bea50ffe6cb4"><img src="https://academy.hackthebox.com/storage/badges/tactical.png" alt="Penetration Testing" width="90" height="90" /></a>  <a href="https://academy.hackthebox.com/achievement/badge/28b561cb-2d8c-11f1-9254-bea50ffe6cb4"><img src="https://academy.hackthebox.com/storage/badges/your-first-battle.png" alt="getting started" width="90" height="90" /></a>
 
 
 
-<p align="left">
-  <a href="https://profile.hackthebox.com/profile/019ca207-b376-73f7-8db1-fece98e53cd6">
-    <img src="https://www.hackthebox.eu/badge/image/019ca207-b376-73f7-8db1-fece98e53cd6" alt="Hack The Box Profile Badge" />
-  </a>
-</p>
 <!---line break---->
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"> 
 <!---line break---->
